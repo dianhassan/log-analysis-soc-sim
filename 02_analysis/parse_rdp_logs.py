@@ -1,35 +1,34 @@
 #!/usr/bin/env python3
 """
-parse_rdp_logs_fixed.py
+parse_rdp_honeypot_logs.py
 
-Parses your 'rdp_fail.logs' file into a structured CSV and generates summary stats + chart.
+Parses 'rdp_fail.logs' in key=value format into a structured CSV
+and generates summary stats + charts.
 """
 
-import re
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
 
 def parse_logs(log_file):
-    # Regex pattern for typical RDP failed logon lines
-    pattern = re.compile(
-        r'(?P<timestamp>\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2}).*?'
-        r'LogonType=(?P<logontype>\d+).*?'
-        r'User=(?P<user>\S+).*?'
-        r'SourceIP=(?P<ip>\S+).*?'
-        r'Status=(?P<status>\S+)'
-    )
-
     rows = []
     with open(log_file, "r", encoding="utf-8", errors="ignore") as f:
         for line in f:
-            match = pattern.search(line)
-            if match:
-                rows.append(match.groupdict())
+            entry = {}
+            parts = line.strip().split(",")
+            for part in parts:
+                if ":" in part:
+                    k, v = part.split(":", 1)
+                    entry[k.strip()] = v.strip()
+            if entry:
+                rows.append(entry)
 
     df = pd.DataFrame(rows)
+
+    # Normalize timestamp column
     df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
+
     return df.dropna(subset=["timestamp"])
 
 
@@ -41,34 +40,35 @@ def analyze(df, outdir="results"):
     df.to_csv(parsed_path, index=False)
     print(f"[+] Parsed logs saved to {parsed_path}")
 
-    # Top IPs
-    top_ips = df["ip"].value_counts().head(10)
+    # Top source IPs
+    top_ips = df["sourcehost"].value_counts().head(10)
     print("\n[Top Failed Source IPs]")
     print(top_ips)
 
-    # Top users
-    top_users = df["user"].value_counts().head(10)
-    print("\n[Top Targeted Users]")
+    # Top targeted usernames
+    top_users = df["username"].value_counts().head(10)
+    print("\n[Top Targeted Usernames]")
     print(top_users)
 
-    # Status codes
-    statuses = df["status"].value_counts()
-    print("\n[Failure Status Codes]")
-    print(statuses)
+    # Top countries
+    if "country" in df.columns:
+        top_countries = df["country"].value_counts().head(10)
+        print("\n[Top Source Countries]")
+        print(top_countries)
 
     # Time series chart
     chart_path = os.path.join(outdir, "failed_over_time.png")
     df.set_index("timestamp").resample("5min").size().plot()
     plt.title("Failed RDP logons over time")
     plt.ylabel("Attempts")
+    plt.xlabel("Time")
     plt.tight_layout()
     plt.savefig(chart_path)
     print(f"[+] Chart saved to {chart_path}")
 
 
 def main():
-    # Use your specific log file here
-    log_file = "rdp_fail.logs"
+    log_file = "rdp_fail.logs"  # Your log file
 
     if not os.path.exists(log_file):
         print(f"[-] Could not find {log_file}. Make sure it's in the same folder as this script.")
@@ -76,7 +76,7 @@ def main():
 
     df = parse_logs(log_file)
     if df.empty:
-        print("[-] No valid log entries parsed. Check regex pattern or log format.")
+        print("[-] No valid log entries parsed. Check log format.")
         return
 
     analyze(df, outdir="results")
