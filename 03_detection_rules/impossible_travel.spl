@@ -1,0 +1,6 @@
+index=honeypot_logs
+| sort 0 username timestamp
+| streamstats current=f last(country) as prevCountry last(timestamp) as prevTime by username
+| eval timeDiff = strptime(timestamp,"%Y-%m-%d %H:%M:%S") - strptime(prevTime,"%Y-%m-%d %H:%M:%S")
+| where country != prevCountry AND timeDiff <= 3600
+| eval severity="medium", description="Impossible travel detected"
