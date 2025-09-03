@@ -1,0 +1,3 @@
+index=honeypot_logs
+| stats count by country latitude longitude
+| where isnotnull(latitude) AND isnotnull(longitude)
