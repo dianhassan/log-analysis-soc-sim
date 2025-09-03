@@ -1,0 +1,4 @@
+index=honeypot_logs
+| search country IN ("China","Russia","Iran","North Korea")
+| stats count by sourcehost country username
+| eval severity="high", description="Access from watchlist country"
