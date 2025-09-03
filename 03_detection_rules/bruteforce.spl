@@ -1,0 +1,4 @@
+index=honeypot_logs
+| stats count as attempts earliest(timestamp) as firstTime latest(timestamp) as lastTime by sourcehost username
+| where attempts >= 10 AND (lastTime - firstTime) <= 300
+| eval severity="medium", description="Brute force login attempts detected"
