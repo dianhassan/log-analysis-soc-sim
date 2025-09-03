@@ -1,0 +1,4 @@
+index=honeypot_logs
+| search username IN ("Administrator","root")
+| stats count by sourcehost destinationhost username
+| eval severity="high", description="Admin account targeted"
