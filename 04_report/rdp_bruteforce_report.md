@@ -47,7 +47,7 @@ RDP brute-force is a common method attackers use to gain unauthorized access by 
 - **Username Distribution:** Shows variations of admin usernames targeted.  
 
 
-<img width="2000" height="1000" alt="rdp_top_ips" src="https://github.com/user-attachments/assets/13eea67b-3642-452b-9433-a0abda0ef834" />
+
 <img width="2000" height="1000" alt="rdp_timeline" src="https://github.com/user-attachments/assets/d928cb80-ce88-4a1f-a741-6c463f8ddfe2" />
 <img width="2000" height="1000" alt="rdp_top_users" src="https://github.com/user-attachments/assets/a884b2df-d394-4fe8-b4bb-4b1a8a36b0ad" />
 <img width="2000" height="1000" alt="rdp_top_countries" src="https://github.com/user-attachments/assets/efff8607-e53a-4598-a58c-ce58fa380b81" />
