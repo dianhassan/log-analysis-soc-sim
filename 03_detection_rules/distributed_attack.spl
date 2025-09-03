@@ -1,0 +1,5 @@
+index=honeypot_logs
+| bin _time span=10m
+| stats dc(sourcehost) as unique_attackers by _time destinationhost
+| where unique_attackers >= 20
+| eval severity="high", description="Distributed attack from many sources"
