@@ -1,0 +1,43 @@
+<dashboard theme="light">
+  <label>RDP Honeypot Geomap</label>
+  <row>
+    <panel>
+      <title>Attack Points (Clustered)</title>
+      <map>
+        <search>
+          <query>
+            <![CDATA[
+            index=rdp sourcetype=rdp_honeypot
+            | eval lat=coalesce(latitude, lat), lon=coalesce(longitude, lon)
+            | where isnotnull(lat) AND isnotnull(lon)
+            | geostats latfield=lat longfield=lon count by country
+            ]]>
+          </query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="mapping.type">cluster</option>
+      </map>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Attempts by Country (Choropleth)</title>
+      <chart>
+        <search>
+          <query>
+            <![CDATA[
+            index=rdp sourcetype=rdp_honeypot
+            | stats count as attempts by country
+            | lookup geo_attr_countries Country as country OUTPUT FeatureId
+            | geom geo_countries featureIdField=FeatureId
+            ]]>
+          </query>
+          <earliest>-7d@d</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.chart">map</option>
+      </chart>
+    </panel>
+  </row>
+</dashboard>
